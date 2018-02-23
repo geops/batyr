@@ -10,7 +10,6 @@
 
 #include <memory>
 #include <vector>
-#include <tuple>
 
 
 namespace Batyr 
@@ -53,10 +52,6 @@ namespace Db
              **/
             void checkResult(PGresultPtr & res);
             
-            /**
-             *
-             */
-            std::tuple<std::vector<const char*>, std::vector<int>> transformQueryValues(const std::vector<QueryValue> &qValues);
 
         public:
             friend class Connection;
@@ -108,6 +103,34 @@ namespace Db
 
     };
 
+
+    /** RAI helper to create C arrays with parameters for libpq functions */
+    class PGParams 
+    {
+        private:
+            char ** _values;
+            int * _valueLengths;
+            int _length;
+
+        public:
+            PGParams(const std::vector<QueryValue> &qValues);
+            ~PGParams();
+
+            char ** values() 
+            {
+                return _values;
+            };
+
+            int * valueLenghts() 
+            {
+                return _valueLengths;
+            };
+
+            int length()
+            {
+                return _length;
+            };
+    };
 };
 };
 

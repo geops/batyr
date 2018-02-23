@@ -182,7 +182,7 @@ primary_key_columns = id
 # MANUAL.md file.
 # Type: boolean
 # Default: false
-bulk_mode = true
+bulk_mode = false
 
 # Which SQL command to use for the bulk mode (if bulk mode is turned on): DELETE or 
 # TRUNCATE. 

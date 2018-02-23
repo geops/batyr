@@ -78,14 +78,18 @@ Worker::pull(Job::Ptr job)
     }
 
     // open the dataset
-    std::unique_ptr<OGRDataSource, decltype((OGRDataSource::DestroyDataSource))> ogrDataset(
-        OGRSFDriverRegistrar::Open(layer->source.c_str(), false),  OGRDataSource::DestroyDataSource);
-    if (!ogrDataset) {
+#if GDAL_VERSION_MAJOR > 1
+    std::unique_ptr<GDALDataset> gdalDataset((GDALDataset*) GDALOpenEx(layer->source.c_str(), GDAL_OF_VECTOR | GDAL_OF_READONLY, NULL, NULL, NULL));
+#else
+    std::unique_ptr<OGRDataSource, decltype((OGRDataSource::DestroyDataSource))> gdalDataset(
+        OGRSFDriverRegistrar::Open(layer->source.c_str(), false), OGRDataSource::DestroyDataSource);
+#endif
+    if (!gdalDataset) {
         throw WorkerError("Could not open dataset for layer \"" + layer->name + "\"");
     }
 
     // find the layer
-    auto ogrLayer = ogrDataset->GetLayerByName(layer->source_layer.c_str());
+    auto ogrLayer = gdalDataset->GetLayerByName(layer->source_layer.c_str());
     if (ogrLayer == nullptr) {
         // check if the layer exists and is just not readable
         // and collect some info for better diagnosis of the
@@ -94,8 +98,8 @@ Worker::pull(Job::Ptr job)
         int layersNotOpenable = 0;
         std::string closestMatch;
         int ldClosestMatch = 5000; // initialize to a high value
-        for (int layerIdx=0; layerIdx<ogrDataset->GetLayerCount(); layerIdx++) {
-            auto searchLayer = ogrDataset->GetLayer(layerIdx);
+        for (int layerIdx=0; layerIdx<gdalDataset->GetLayerCount(); layerIdx++) {
+            auto searchLayer = gdalDataset->GetLayer(layerIdx);
             if (searchLayer != nullptr) {
                 if (layer->source_layer == searchLayer->GetName()) {
                     layerExists = true;
@@ -315,7 +319,7 @@ Worker::pull(Job::Ptr job)
                     logStream   << " contains no SRID information."
                                 << " Reprojection is impossible -> using the SRID of the geometries as they are read from the source.";
 
-                    colStream   <<  "$" << idxColumn << "::" << tableField->pgTypeName;
+                    colStream   <<  "$" << idxColumn << "::text::" << tableField->pgTypeName;
                 }
                 else {
                     // all srids smaller than 1 are treated as undefined.
@@ -324,7 +328,7 @@ Worker::pull(Job::Ptr job)
                         logStream   << " returns SRID=" << pgSrid << " (undefined)."
                                     << " Reprojection is impossible -> assigning the SRID=" << pgUndefinedSrid << " (native undefined) to the new geometries";
 
-                        colStream   << "st_setsrid($" << idxColumn << "::" << tableField->pgTypeName << ", "
+                        colStream   << "st_setsrid($" << idxColumn << "::text::" << tableField->pgTypeName << ", "
                                     << pgUndefinedSrid << ")";
                     }
                     else {
@@ -338,7 +342,7 @@ Worker::pull(Job::Ptr job)
                                     <<      "else "
                                     <<          " st_transform(foo.g, " << pgSrid << ") "
                                     <<      "end"
-                                    << " from ( select $" << idxColumn << "::" << tableField->pgTypeName << " as g "
+                                    << " from ( select $" << idxColumn << "::text::" << tableField->pgTypeName << " as g "
                                     << " ) foo)";
                     }
                 }
@@ -835,6 +839,14 @@ Worker::getPostgresType(OGRFieldType fieldType)
         case OFTBinary:
             pgFieldType = "bytea";
             break;
+#if GDAL_VERSION_MAJOR > 1
+        case OFTInteger64:
+            pgFieldType = "integer";
+            break;
+        case OFTInteger64List:
+            pgFieldType = "integer[]";
+            break;
+#endif
         default:
             throw WorkerError("No supported PostgreSQL type for OGR field type: " + std::to_string(static_cast<int>(fieldType)));
     }
@@ -856,6 +868,9 @@ Worker::convertToString(OGRFeature * ogrFeature, const int fieldIdx, OGRFieldTyp
             }
             break;
         case OFTInteger:
+#if GDAL_VERSION_MAJOR > 1
+        case OFTInteger64:
+#endif
             result.setIsNull(ogrFeature->IsFieldSet(fieldIdx) == 0);
             if (!result.isNull()) {
                 result.set(std::to_string(ogrFeature->GetFieldAsInteger(fieldIdx)));
@@ -909,6 +924,9 @@ Worker::convertToString(OGRFeature * ogrFeature, const int fieldIdx, OGRFieldTyp
                 break;
             }
         case OFTIntegerList:
+#if GDAL_VERSION_MAJOR > 1
+        case OFTInteger64List:
+#endif
         case OFTRealList:
         case OFTStringList:
             {

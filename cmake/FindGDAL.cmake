@@ -13,8 +13,8 @@
 #
 # GDAL_INCLUDE_DIR      = where to find headers 
 
-
-INCLUDE (@CMAKE_SOURCE_DIR@/cmake/MacPlistMacros.cmake)
+cmake_policy(SET CMP0053 NEW)
+INCLUDE (@CMAKE_SOURCE_DIR@/../cmake/MacPlistMacros.cmake)
 
 IF(WIN32)
 

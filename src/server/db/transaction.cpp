@@ -111,40 +111,14 @@ Transaction::execPrepared(const std::string &stmtName, int nParams, const char *
 }
 
 
-std::tuple<std::vector<const char*>, std::vector<int>>
-Transaction::transformQueryValues(const std::vector<QueryValue> &qValues)
-{
-    // convert to an array of c strings
-    std::vector<const char*> cStrValues;
-    std::vector<int> cStrValueLenghts;
-    std::transform(qValues.begin(), qValues.end(), std::back_inserter(cStrValues),
-                [](const QueryValue & pV) -> const char * {
-                    if (pV.isNull()) {
-                        return NULL;
-                    }
-                    return pV.get().c_str();
-            });
-    std::transform(qValues.begin(), qValues.end(), std::back_inserter(cStrValueLenghts),
-                [](const QueryValue & pV) -> int {
-                    if (pV.isNull()) {
-                        return 0;
-                    }
-                    return pV.get().length();
-            });
-
-    return std::make_tuple(std::move(cStrValues), std::move(cStrValueLenghts));
-}
-
-
 PGresultPtr
 Transaction::execPrepared(const std::string &stmtName, const std::vector<QueryValue> &qValues)
 {
     // convert to an array of c strings
-    auto qValuesTransformed = this->transformQueryValues(qValues);
-    std::vector<const char*> cStrValues = std::get<0>(qValuesTransformed);
-    std::vector<int> cStrValueLenghts = std::get<1>(qValuesTransformed);
+    auto params = PGParams(qValues);
 
-    PGresultPtr result = this->execPrepared(stmtName, qValues.size(), &cStrValues[0], &cStrValueLenghts[0], NULL, 1);
+    PGresultPtr result = this->execPrepared(stmtName, params.length(), params.values(), params.valueLenghts(), NULL, 1);
+
     return std::move(result);
 }
 
@@ -153,11 +127,10 @@ PGresultPtr
 Transaction::execParams(const std::string &_sql, const std::vector<QueryValue> &qValues)
 {
     // convert to an array of c strings
-    auto qValuesTransformed = this->transformQueryValues(qValues);
-    std::vector<const char*> cStrValues = std::get<0>(qValuesTransformed);
-    std::vector<int> cStrValueLenghts = std::get<1>(qValuesTransformed);
+    auto params = PGParams(qValues);
 
-    PGresultPtr result = this->execParams(_sql, qValues.size(), NULL, &cStrValues[0], &cStrValueLenghts[0], NULL, 1);
+    PGresultPtr result = this->execParams(_sql, params.length(), NULL, params.values(), params.valueLenghts(), NULL, 1);
+
     return std::move(result);
 }
 
@@ -361,4 +334,44 @@ Transaction::quoteAndJoinIdent(const std::string & uq1, const std::string & uq2)
         throw DbError("Quoted vector should contain exactly two elements.");
     }
     return StringUtils::join(qv, ".");
+}
+
+
+PGParams::PGParams(const std::vector<QueryValue> &qValues) 
+    :   _values(NULL),
+        _valueLengths(NULL),
+        _length(0)
+{
+    _length = qValues.size();
+    _values = new char *[_length];
+    _valueLengths = new int [_length];
+
+    int i = 0;
+    for (auto const &pV: qValues) {
+        if (pV.isNull()) {
+            _values[i] = NULL;
+            _valueLengths[i] = 0;
+        }
+        else {
+            auto v = pV.get();
+            _values[i] = strdup(v.c_str());
+            _valueLengths[i] = static_cast<int>(v.length());
+        }
+        i++;
+    }
+}
+
+PGParams::~PGParams()
+{
+    if (_values != NULL) {
+        for(int i = 0; i<_length; i++) {
+            if (_values[i] != NULL) {
+                free(_values[i]);
+            }
+        }
+        delete[] _values;
+    }
+    if (_valueLengths != NULL) {
+        delete[] _valueLengths;
+    }
 }

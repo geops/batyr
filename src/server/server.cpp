@@ -56,7 +56,11 @@ Server::main(const std::vector<std::string> & args)
     Poco::Logger & logger = Poco::Logger::get("Server"); 
 
     // initialize ogr
+#if GDAL_VERSION_MAJOR > 1
+    GDALAllRegister();
+#else
     OGRRegisterAll();
+#endif
 
     // make GML attributes available. Otherwise some attibutes listed in the GML
     // might not exist in the read features.

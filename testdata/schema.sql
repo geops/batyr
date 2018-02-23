@@ -33,7 +33,7 @@ CREATE TABLE africa (
     country character varying(35),
     the_geom public.geometry,
     CONSTRAINT enforce_dims_the_geom CHECK ((public.st_ndims(the_geom) = 2)),
-    CONSTRAINT enforce_srid_the_geom CHECK ((public.st_srid(the_geom) = (-1)))
+    CONSTRAINT enforce_srid_the_geom CHECK ((public.st_srid(the_geom) = (0)))
 );
 
 
