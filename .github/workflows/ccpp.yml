@@ -8,7 +8,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -27,6 +26,8 @@ jobs:
 
   pack:
     runs-on: ubuntu-latest
+
+    steps:
     - uses: actions/checkout@v2
     - name: dependencies
       run: sudo apt-get install debhelper
