@@ -3,6 +3,9 @@ cmake_minimum_required (VERSION 2.8)
 project (batyr)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+SET(BUILD_SHARED_LIBS OFF)
+SET(CMAKE_EXE_LINKER_FLAGS "-static")
 
 # http://stackoverflow.com/questions/7724569/debug-vs-release-in-cmake
 # Initialize CXXFLAGS.
