@@ -19,3 +19,12 @@ jobs:
       run: cmake .
     - name: make
       run: make
+    - name: make debian package
+      run: make -f Makefile.devel deb
+    - name: Download artifact
+      uses: actions/download-artifact@v1.0.0
+      with:
+        # Artifact name
+        name: batyr.deb
+        # Destination path
+        path: "*.deb"
