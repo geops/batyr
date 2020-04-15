@@ -1,0 +1,21 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: dependencies
+      run: apt-get install libpoco-dev libpocofoundation9 libpoconet9 libpocoutil9 libgdal1 libgdal1-dev cmake g++ build-essential libpq-dev discount python
+    - name: configure
+      run: cmake .
+    - name: make
+      run: make
