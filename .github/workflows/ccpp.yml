@@ -19,12 +19,22 @@ jobs:
       run: cmake .
     - name: make
       run: make
-    - name: make debian package
-      run: make -f Makefile.devel deb
+    - name: Upload math result for build job
+        uses: actions/upload-artifact@v1
+        with:
+          name: batyrd
+          path: batyrd
+
+  pack:
+    runs-on: ubuntu-latest
+    - uses: actions/checkout@v2
+    - name: dependencies
+      run: sudo apt-get install debhelper
+
     - name: Download artifact
       uses: actions/download-artifact@v1.0.0
       with:
         # Artifact name
-        name: batyr.deb
-        # Destination path
-        path: "*.deb"
+        name: batyrd
+    - name: make debian package
+      run: make -f Makefile.devel deb

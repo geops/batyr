@@ -2,11 +2,11 @@ Source: batyr
 Section: misc
 Priority: optional
 Maintainer: Nico Mandery <nico.mandery@geops.de>
-Build-Depends: debhelper (>= 7.0.50~), build-essential, libpq5, libpq-dev, libpoco-dev ( >= 1.3.6), libpocofoundation9 ( >= 1.3.6), libpoconet9 ( >= 1.3.6), libpocoutil9 ( >= 1.3.6), libgdal1 | libgdal1h, libgdal1-dev, cmake (>= 2.8), g++ (>= 4.7), python, bash, discount
+Build-Depends: debhelper (>= 7.0.50~), build-essential, libpq5, libpq-dev, libpoco-dev ( >= 1.3.6), libpocofoundation50, libpoconet50, libpocoutil50, libgdal20 | libgdal20h, libgdal-dev, cmake (>= 2.8), g++ (>= 4.7), python, bash, discount
 Standards-Version: 3.9.2
 Homepage: https://github.com/geops/batyr
 
 Package: batyr
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libpocofoundation9 ( >= 1.3.6), libpoconet9 ( >= 1.3.6), libpocoutil9 ( >= 1.3.6)
+Depends: ${shlibs:Depends}, ${misc:Depends}, libpocofoundation50 ( >= 1.3.6), libpoconet50 ( >= 1.3.6), libpocoutil50 ( >= 1.3.6)
 Description: Synchronsiation server for on-demand synchronization of vector datasources to a PostgreSQL/PostGIS database.
