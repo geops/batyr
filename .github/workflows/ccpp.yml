@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: dependencies
-      run: sudo apt-get install libpoco-dev libpocofoundation50 libpoconet50 libpocoutil50 libgdal20 libgdal-dev cmake g++ build-essential libpq-dev discount python debhelper
+      run: sudo apt-get install libpoco-dev libpocofoundation50 libpoconet50 libpocoutil50 libgdal20 libgdal-dev cmake g++ build-essential libpq-dev discount python
     - name: configure
       run: cmake .
     - name: make
@@ -23,10 +23,3 @@ jobs:
       with:
         name: batyrd
         path: src/server/batyrd
-    - name: make debian package
-      run: make -f Makefile.devel deb
-    - name: Upload result for pack job
-      uses: actions/upload-artifact@v1
-      with:
-        name: batyrd
-        path: "../*.deb"
