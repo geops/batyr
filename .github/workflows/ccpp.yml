@@ -22,7 +22,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: batyrd
-        path: batyrd
+        path: src/server/batyrd
     - name: make debian package
       run: make -f Makefile.devel deb
     - name: Upload result for pack job
