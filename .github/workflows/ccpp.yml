@@ -13,29 +13,20 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: dependencies
-      run: sudo apt-get install libpoco-dev libpocofoundation50 libpoconet50 libpocoutil50 libgdal20 libgdal-dev cmake g++ build-essential libpq-dev discount python
+      run: sudo apt-get install libpoco-dev libpocofoundation50 libpoconet50 libpocoutil50 libgdal20 libgdal-dev cmake g++ build-essential libpq-dev discount python debhelper
     - name: configure
       run: cmake .
     - name: make
       run: make
-    - name: Upload math result for build job
+    - name: Upload result for build job
       uses: actions/upload-artifact@v1
       with:
         name: batyrd
         path: batyrd
-
-  pack:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: dependencies
-      run: sudo apt-get install debhelper
-
-    - name: Download artifact
-      uses: actions/download-artifact@v1.0.0
-      with:
-        # Artifact name
-        name: batyrd
     - name: make debian package
       run: make -f Makefile.devel deb
+    - name: Upload result for pack job
+      uses: actions/upload-artifact@v1
+      with:
+        name: batyrd
+        path: "*.deb"
